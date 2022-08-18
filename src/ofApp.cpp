@@ -12,7 +12,7 @@ void ofApp::setup() {
     loadSettings();
     
     //----------------- CAM -------------------
-    setupCam(deviceID);
+    
     //viewCam            = false;  // en el XML
     camWidth            = 640;
     camHeight           = 480;
@@ -24,6 +24,8 @@ void ofApp::setup() {
     //vMirror             = false; // en el XML
        
     isOneDeviceAvailable =  false;
+    
+    setupCam(deviceID);
        
     promedioDeMovimiento = 0.0f;
     //----------------- GUI -------------------
