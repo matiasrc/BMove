@@ -32,31 +32,6 @@ void ofApp::drawGui(){
 
     bool * p_open = &closeWindow;
     
-    // Demonstrate the various window flags. Typically you would just use the default!
-    static bool no_titlebar = false;
-    static bool no_scrollbar = false;
-    static bool no_menu = false;
-    static bool no_move = false;
-    static bool no_resize = false;
-    static bool no_collapse = true;
-    static bool no_close = true;
-    static bool no_nav = false;
-    static bool no_background = false;
-    static bool no_bring_to_front = false;
-
-    ImGuiWindowFlags window_flags = 0;
-    if (no_titlebar)        window_flags |= ImGuiWindowFlags_NoTitleBar;
-    if (no_scrollbar)       window_flags |= ImGuiWindowFlags_NoScrollbar;
-    if (!no_menu)           window_flags |= ImGuiWindowFlags_MenuBar;
-    if (no_move)            window_flags |= ImGuiWindowFlags_NoMove;
-    if (no_resize)          window_flags |= ImGuiWindowFlags_NoResize;
-    if (no_collapse)        window_flags |= ImGuiWindowFlags_NoCollapse;
-    if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
-    if (no_background)      window_flags |= ImGuiWindowFlags_NoBackground;
-    if (no_bring_to_front)  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-    if (no_close)           p_open = NULL; // Don't pass our bool* to Begin
-    
-    
     // -------- MENU PRINCIPAL --------
     if (ImGui::BeginMainMenuBar())
     {
@@ -66,12 +41,6 @@ void ofApp::drawGui(){
                 saveSettings();
                 ofLogVerbose() << "Configuración guardada";
             }
-            if (ImGui::MenuItem("Config. Cam")) {
-                show_cam_config_panel = true;
-            }
-            if (ImGui::MenuItem("Config. OSC")) {
-                show_osc_config_panel = true;
-            }
             
             ImGui::Checkbox("Gráfico de movimiento", &show_plotline);
             
@@ -80,114 +49,81 @@ void ofApp::drawGui(){
             ImGui::EndMenu();
         }
         
-        if (ImGui::BeginMenu("Ayuda"))
+        if (ImGui::BeginMenu("|Entrada|"))
+            {
+                static const char* item_current = devicesVector[deviceID].c_str();
+                if(ImGui::BeginCombo(" ", item_current)){
+        
+                    for(int i=0; i < devicesVector.size(); ++i){
+                        const bool isSelected = (deviceID == i);
+                        if(ImGui::Selectable(devicesVector[i].c_str(), isSelected)){
+                            deviceID = i;
+                            resetCameraSettings(deviceID);
+                            item_current = devicesVector[i].c_str();
+                        }
+                        if(isSelected){
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                ImGui::EndCombo();
+                }
+                ImGui::SameLine(); HelpMarker("Elegir el dispositivo de entrada");
+                
+                ImGui::Separator();
+                ImGui::Checkbox("ESPEJAR HORIZONTAL", &hMirror);
+                ImGui::Checkbox("ESPEJAR VERTICAL", &vMirror);
+                
+            ImGui::EndMenu();
+            }
+        if (ImGui::BeginMenu("|OSC|"))
         {
-            show_about_window = true;
+            if(ImGui::InputInt("port", &puerto)) sender.setup(host, puerto);
+            ImGui::SameLine(); HelpMarker("puerto de conección");
             
+            static char str1[128];
+            strcpy(str1, host.c_str());
+            //static char str1[128] = "127.0.0.1";
+            //ImGui::InputTextWithHint("ip", "enter ip address here", str1, IM_ARRAYSIZE(str1));
+            if( ImGui::InputTextWithHint("ip", "enter ip address here",str1, IM_ARRAYSIZE(str1))){
+                host = ofVAArgsToString(str1);
+                sender.setup(host, puerto);
+                //ofLogVerbose() << "--------CAMBIO DE HOST: " << host;
+            }
+            ImGui::SameLine(); HelpMarker("dirección ip del receptor de mensajes");
+            
+            ImGui::Separator();
+            
+            static char movimientoaddress[128];
+            strcpy(movimientoaddress, etiquetaMOVIMIENTO.c_str());
+            if( ImGui::InputTextWithHint("address", "enter OSC address here",movimientoaddress, IM_ARRAYSIZE(movimientoaddress))){
+                etiquetaMOVIMIENTO = ofVAArgsToString(movimientoaddress);
+                //ofLogVerbose() << "--------CAMBIO DE ETIQUETA: " << movimientoaddress;
+            }
+            ImGui::SameLine(); HelpMarker("etiqueta (debe comenzar con /) ");
+            ImGui::Checkbox("ENVIAR MOVIMIENTO", &enviarMOVIMIENTO);
+            ImGui::SameLine(); HelpMarker("habilitar / deshabilitar el envío de datos");
+            
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("|Acerca|"))
+        {
+            ImGui::Text("BFaceTracker");
+            ImGui::Separator();
+            ImGui::Text("Software experimental para captura de movimiento.");
+            ImGui::Text("utilizando las técnicas de haar cascade ");
+            ImGui::Text("para detección de objetos.");
+            ImGui::Text("Esta aplicación está en desarrollo y no tiene soporte");
+            ImGui::Text("..............");
+            ImGui::Text("Desarrollado por Matías Romero Costas (Biopus)");
+            ImGui::Text("www.biopus.ar");
+
             ImGui::EndMenu();
         }
         
         ImGui::EndMainMenuBar();
         
     }
-    // Menú principal
-    
-    if (show_osc_config_panel)
-    {
-        //note: ofVec2f and ImVec2f are interchangeable
-        ImGui::SetNextWindowSize(ofVec2f(290,180), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Configuracion OSC", &show_osc_config_panel);
-    
-        //-------------------------------------------------------------------------------------------
-        //                         OSC - INPUT INT
-        //-------------------------------------------------------------------------------------------
-
-        //ImGui::Separator(); ImGui::Separator(); ImGui::Separator();ImGui::Separator();
-        //ImGui::Text("-: OSC :----");
-
-        if(ImGui::InputInt("port", &puerto)) sender.setup(host, puerto);
-        ImGui::SameLine(); HelpMarker("puerto de conección");
-        
-        static char str1[128];
-        strcpy(str1, host.c_str());
-        //static char str1[128] = "127.0.0.1";
-        //ImGui::InputTextWithHint("ip", "enter ip address here", str1, IM_ARRAYSIZE(str1));
-        if( ImGui::InputTextWithHint("ip", "enter ip address here",str1, IM_ARRAYSIZE(str1))){
-            host = ofVAArgsToString(str1);
-            sender.setup(host, puerto);
-            //ofLogVerbose() << "--------CAMBIO DE HOST: " << host;
-        }
-        ImGui::SameLine(); HelpMarker("dirección ip del receptor de mensajes");
-        
-        ImGui::Separator();
-        
-        static char movimientoaddress[128];
-        strcpy(movimientoaddress, etiquetaMOVIMIENTO.c_str());
-        if( ImGui::InputTextWithHint("address", "enter OSC address here",movimientoaddress, IM_ARRAYSIZE(movimientoaddress))){
-            etiquetaMOVIMIENTO = ofVAArgsToString(movimientoaddress);
-            //ofLogVerbose() << "--------CAMBIO DE ETIQUETA: " << movimientoaddress;
-        }
-        ImGui::SameLine(); HelpMarker("etiqueta (debe comenzar con /) ");
-        ImGui::Checkbox("ENVIAR MOVIMIENTO", &enviarMOVIMIENTO);
-        ImGui::SameLine(); HelpMarker("habilitar / deshabilitar el envío de datos");
-        ImGui::End();
-    }
-    if (show_cam_config_panel)
-    {
-        //note: ofVec2f and ImVec2f are interchangeable
-        ImGui::SetNextWindowSize(ofVec2f(50,100), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Configuracion Camara", &show_cam_config_panel);
-        //-------------------------------------------------------------------------------------------
-        //                         DISPOSITIVOS DE ENTRADA -COMBO: POP UP MENU
-        //-------------------------------------------------------------------------------------------
-        
-         //------------------------ DISPOSITIVO DE ENTRADA - COMBO: POP UP MENU-----------------------
-        //ImGui::Text("-: Fuente :----"); ImGui::SameLine(); HelpMarker("Elegir el dispositivo de entrada de sonido");
-        //ImGui::Text("----: Dispositivo de entrada :----"); ImGui::SameLine(); HelpMarker("Elegir el dispositivo de entrada");
-        {
-            // Using the _simplified_ one-liner Combo() api here
-            // See "Combo" section for examples of how to use the more complete BeginCombo()/EndCombo() api.
-            //const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", //"KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
-            const char* items[devicesVector.size()];
-            //static int item_current = 0;
-            for(int i=0; i<devicesVector.size(); i++){
-                
-                items[i] = devicesVector[i].c_str();
-            }
-            if(ImGui::Combo(" ", &deviceID, items, IM_ARRAYSIZE(items))){
-                resetCameraSettings(deviceID);
-                ofLogVerbose() << "--------CAMBIO DE CAMARA - DIVICE ID: " << deviceID;
-            }
-            ImGui::SameLine(); HelpMarker("Elegir el dispositivo de entrada");
-            
-            ImGui::Checkbox("ESPEJAR HORIZONTAL", &hMirror);
-            ImGui::Checkbox("ESPEJAR VERTICAL", &vMirror);
-        }
-        
-        ImGui::End();
-    }
-    
-    if(show_about_window){
-        ImGui::SetNextWindowSize(ofVec2f(300,200), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Another Window", &show_about_window);
-        ImGui::Text("Dear ImGui");
-        ImGui::Separator();
-        ImGui::Text("By Omar Cornut and all Dear ImGui contributors.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
-        ImGui::End();
-    }
-    
     
     //------------------------ Plot Line movimiento -----------------------
     
