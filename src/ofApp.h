@@ -38,10 +38,6 @@ public:
     //----------------- GUI -------------------
     void drawGui();
     ofxImGui::Gui gui;
-
-    bool show_cam_config_panel;
-    bool show_osc_config_panel;
-    bool show_about_window;
     bool show_plotline;
         
     //----------------- OSC -------------------

@@ -33,10 +33,7 @@ void ofApp::setup() {
     gui.setup();
     
     ImGui::GetIO().MouseDrawCursor = false;
-    
-    show_cam_config_panel = false;
-    show_osc_config_panel = false;
-    show_about_window = false;
+
     //show_plotline = false; //en el XML
     
     //----------------- OSC -------------------
