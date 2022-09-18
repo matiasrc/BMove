@@ -17,3 +17,6 @@ ofxXmlSettings (included in Of Core)
 - entrada de Syphon y Spout
 - configuración de ancho y alto de imagen de entrada
 - calibración (Quad Warping) de la imagen de entrada
+
+## PRE REALISES ##
+[Binaries / ejecutables](https://github.com/matiasrc/BMove/releases) OSX & Win 64bit
