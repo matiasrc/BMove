@@ -78,7 +78,7 @@ void ofApp::drawGui(){
         if (ImGui::BeginMenu("|OSC|"))
         {
             if(ImGui::InputInt("port", &puerto)) sender.setup(host, puerto);
-            ImGui::SameLine(); HelpMarker("puerto de conección");
+            ImGui::SameLine(); HelpMarker("puerto de conexión");
             
             static char str1[128];
             strcpy(str1, host.c_str());
