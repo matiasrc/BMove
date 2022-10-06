@@ -1,5 +1,5 @@
 <OSC>
-    <PUERTO>12344</PUERTO>
+    <PUERTO>12345</PUERTO>
     <HOST>127.0.0.1</HOST>
     <ETIQUETA>
         <MOVIMIENTO>/movimiento</MOVIMIENTO>
